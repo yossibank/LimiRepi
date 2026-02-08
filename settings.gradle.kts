@@ -30,4 +30,4 @@ dependencyResolutionManagement {
 }
 
 include(":composeApp")
-include(":limirepi-android")
+include(":androidApp")
