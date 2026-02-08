@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.cocoapods)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.serialization)
@@ -32,14 +33,14 @@ kotlin {
         }
 
         commonMain.dependencies {
-            implementation(libs.compose.runtime)
+            implementation(libs.androidx.lifecycle.runtime.compose)
+            implementation(libs.androidx.lifecycle.viewmodel.compose)
+            implementation(libs.compose.components.resources)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
+            implementation(libs.compose.runtime)
             implementation(libs.compose.ui)
-            implementation(libs.compose.components.resources)
             implementation(libs.compose.uiToolingPreview)
-            implementation(libs.androidx.lifecycle.viewmodel.compose)
-            implementation(libs.androidx.lifecycle.runtime.compose)
             implementation(libs.kotlinx.coroutines.core)
         }
 
@@ -47,6 +48,22 @@ kotlin {
             implementation(libs.kotlin.test)
         }
     }
+
+//    cocoapods {
+//        version = "1.16.2"
+//        summary = "LimiRepi: Compose Multiplatform Application"
+//        homepage = "https://github.com/yossibank/LimiRepi"
+//        name = "LimiRepi"
+//        podfile = project.file("../limirepi-ios/Podfile")
+//        ios.deploymentTarget = "18.2"
+//
+//        framework {
+//            baseName = "LimiRepi-ios"
+//            isStatic = true
+//        }
+//
+//        pod("GoogleMLKit/TextRecognition", "9.0.0")
+//    }
 }
 
 android {
