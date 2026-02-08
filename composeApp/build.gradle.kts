@@ -42,6 +42,14 @@ kotlin {
         }
     }
 
+    targets.withType<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget> {
+        compilations["main"].compileTaskProvider.configure {
+            compilerOptions {
+                freeCompilerArgs.add("-Xexport-kdoc")
+            }
+        }
+    }
+
     cocoapods {
         version = "1.0.0"
         summary = "LimiRepi: Compose Multiplatform Application"
@@ -53,6 +61,11 @@ kotlin {
 
         pod("LoremIpsum") {
             version = "2.0.0"
+        }
+
+        pod("GoogleMLKit/TextRecognitionJapanese") {
+            moduleName = "MLKitTextRecognitionJapanese"
+            extraOpts = listOf("-compiler-option", "-fmodules")
         }
 
         framework {
