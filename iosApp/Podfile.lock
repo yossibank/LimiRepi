@@ -1,0 +1,23 @@
+PODS:
+  - composeApp (1.0.0):
+    - LoremIpsum (= 2.0.0)
+  - LoremIpsum (2.0.0)
+
+DEPENDENCIES:
+  - composeApp (from `../composeApp`)
+
+SPEC REPOS:
+  trunk:
+    - LoremIpsum
+
+EXTERNAL SOURCES:
+  composeApp:
+    :path: "../composeApp"
+
+SPEC CHECKSUMS:
+  composeApp: 196dd04e800e8ece75114f84578e7d3063556b92
+  LoremIpsum: 25837e6f8f9c63471c23140be3e4c6e1b6743c9e
+
+PODFILE CHECKSUM: 99352d22a669e185a17003ae4a40e595b0264e9b
+
+COCOAPODS: 1.16.2

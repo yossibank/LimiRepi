@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.cocoapods)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.serialization)
@@ -15,15 +16,8 @@ kotlin {
         }
     }
 
-    listOf(
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach { iosTarget ->
-        iosTarget.binaries.framework {
-            baseName = "ComposeApp"
-            isStatic = true
-        }
-    }
+    iosArm64()
+    iosSimulatorArm64()
 
     sourceSets {
         androidMain.dependencies {
@@ -48,21 +42,24 @@ kotlin {
         }
     }
 
-//    cocoapods {
-//        version = "1.16.2"
-//        summary = "LimiRepi: Compose Multiplatform Application"
-//        homepage = "https://github.com/yossibank/LimiRepi"
-//        name = "LimiRepi"
-//        podfile = project.file("../limirepi-ios/Podfile")
-//        ios.deploymentTarget = "18.2"
-//
-//        framework {
-//            baseName = "LimiRepi-ios"
-//            isStatic = true
-//        }
-//
-//        pod("GoogleMLKit/TextRecognition", "9.0.0")
-//    }
+    cocoapods {
+        version = "1.0.0"
+        summary = "LimiRepi: Compose Multiplatform Application"
+        homepage = "https://github.com/yossibank/LimiRepi"
+
+        ios.deploymentTarget = "18.0"
+
+        podfile = project.file("../iosApp/Podfile")
+
+        pod("LoremIpsum") {
+            version = "2.0.0"
+        }
+
+        framework {
+            baseName = "ComposeApp"
+            isStatic = true
+        }
+    }
 }
 
 android {
