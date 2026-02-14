@@ -23,6 +23,15 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.activity.compose)
+            implementation(libs.camera.core)
+            implementation(libs.camera.camera2)
+            implementation(libs.camera.lifecycle)
+            implementation(libs.camera.video)
+            implementation(libs.camera.view)
+            implementation(libs.kotlinx.coroutines.play.services)
+            implementation(libs.mlkit.text.recognition)
+            implementation(libs.play.services.mlkit.text.recognition)
+            implementation(libs.ktor.client.okhttp)
         }
 
         commonMain.dependencies {
@@ -30,11 +39,20 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel.compose)
             implementation(libs.compose.components.resources)
             implementation(libs.compose.foundation)
+            implementation(libs.compose.icons.extended)
             implementation(libs.compose.material3)
             implementation(libs.compose.runtime)
             implementation(libs.compose.ui)
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.serialization.json)
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.serialization.kotlinx.json)
+        }
+
+        iosMain.dependencies {
+            implementation(libs.ktor.client.darwin)
         }
 
         commonTest.dependencies {
@@ -46,7 +64,11 @@ kotlin {
         compilations["main"].compileTaskProvider.configure {
             compilerOptions {
                 freeCompilerArgs.add("-Xexport-kdoc")
+                freeCompilerArgs.add("-Xexpect-actual-classes")
             }
+        }
+        binaries.framework {
+            binaryOption("bundleId", "jp.co.yahoo.yossibank.limirepi.ComposeApp")
         }
     }
 
@@ -61,11 +83,6 @@ kotlin {
 
         pod("LoremIpsum") {
             version = "2.0.0"
-        }
-
-        pod("GoogleMLKit/TextRecognitionJapanese") {
-            moduleName = "MLKitTextRecognitionJapanese"
-            extraOpts = listOf("-compiler-option", "-fmodules")
         }
 
         framework {

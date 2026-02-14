@@ -1,49 +1,193 @@
 package jp.co.yahoo.yossibank.limirepi
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import org.jetbrains.compose.resources.painterResource
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import jp.co.yahoo.yossibank.limirepi.camera.CameraScreen
+import jp.co.yahoo.yossibank.limirepi.ocr.ReceiptData
 
-import limirepi.composeapp.generated.resources.Res
-import limirepi.composeapp.generated.resources.compose_multiplatform
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@Preview
 fun App() {
+    var showCamera by remember { mutableStateOf(false) }
+    var receiptData by remember { mutableStateOf<ReceiptData?>(null) }
+    var isCapturing by remember { mutableStateOf(false) }
+    var showSheet by remember { mutableStateOf(false) }
+    var isAnalyzing by remember { mutableStateOf(false) }
+
     MaterialTheme {
-        var showContent by remember { mutableStateOf(false) }
-        Column(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .safeContentPadding()
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Button(onClick = { showContent = !showContent }) {
-                Text("Click me!")
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (!showCamera) {
+                // ホーム画面
+                Column(Modifier.fillMaxSize(), Arrangement.Center, Alignment.CenterHorizontally) {
+                    Button(onClick = { showCamera = true }) { Text("📷 レシートをスキャン") }
+                }
+            } else {
+                // カメラ画面
+                Box(Modifier.fillMaxSize()) {
+                    CameraScreen(
+                        modifier = Modifier.fillMaxSize(),
+                        captureTrigger = isCapturing,
+                        onCaptureFinished = { isCapturing = false },
+                        onAnalyzing = { isAnalyzing = it },
+                        onParsed = { data ->
+                            if (data != null) {
+                                receiptData = data
+                                showSheet = true
+                                showCamera = false
+                            }
+                        }
+                    )
+
+                    // 解析中のインジケーター
+                    if (isAnalyzing) {
+                        Box(
+                            Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                CircularProgressIndicator(color = Color.White)
+                                Text(
+                                    "AI解析中...",
+                                    color = Color.White,
+                                    modifier = Modifier.padding(top = 16.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    // UIボタン
+                    Column(Modifier.align(Alignment.BottomCenter).padding(bottom = 48.dp)) {
+                        Button(
+                            onClick = { isCapturing = true },
+                            modifier = Modifier.size(72.dp),
+                            shape = CircleShape,
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                            enabled = !isAnalyzing
+                        ) {
+                            Icon(Icons.Default.PhotoCamera, "撮影", tint = Color.Black)
+                        }
+                        TextButton(
+                            onClick = { showCamera = false },
+                            enabled = !isAnalyzing
+                        ) {
+                            Text("キャンセル", color = Color.White)
+                        }
+                    }
+                }
             }
-            AnimatedVisibility(showContent) {
-                val greeting = remember { Greeting().greet() }
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Image(painterResource(Res.drawable.compose_multiplatform), null)
-                    Text("Compose: $greeting")
+
+            if (showSheet) {
+                ModalBottomSheet(onDismissRequest = { showSheet = false }) {
+                    receiptData?.let { data ->
+                        ReceiptResultSheet(data) { showSheet = false }
+                    }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun ReceiptResultSheet(data: ReceiptData, onClose: () -> Unit) {
+    Column(Modifier.fillMaxWidth().padding(16.dp).heightIn(max = 700.dp)) {
+        Text("スキャン結果", style = MaterialTheme.typography.titleLarge)
+        
+        // レシート情報
+        Column(Modifier.fillMaxWidth().padding(vertical = 16.dp)) {
+            data.storeName?.let {
+                Row(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                    Text("店舗名: ", fontWeight = FontWeight.Bold)
+                    Text(it)
+                }
+            }
+            data.purchaseDate?.let {
+                Row(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                    Text("購入日: ", fontWeight = FontWeight.Bold)
+                    Text(it)
+                }
+            }
+        }
+        
+        HorizontalDivider()
+        
+        // 商品リスト
+        LazyColumn(Modifier.weight(1f).padding(vertical = 16.dp)) {
+            items(data.items) { item ->
+                Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), Arrangement.SpaceBetween) {
+                    Column(Modifier.weight(1f)) {
+                        Text(item.name)
+                        Row {
+                            if (item.quantity > 1) {
+                                Text(
+                                    "数量: ${item.quantity}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color.Gray,
+                                    modifier = Modifier.padding(end = 8.dp)
+                                )
+                            }
+                            item.category?.let { category ->
+                                Text(
+                                    "[$category]",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color.Gray
+                                )
+                            }
+                        }
+                    }
+                    Text(
+                        text = "¥${item.price}",
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                HorizontalDivider(Modifier.alpha(0.3f))
+            }
+        }
+        
+        // 合計金額
+        data.totalAmount?.let { total ->
+            HorizontalDivider()
+            Row(
+                Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                Arrangement.SpaceBetween
+            ) {
+                Text("合計金額", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                Text("¥$total", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+            }
+        }
+        
+        Button(onClick = onClose, Modifier.fillMaxWidth()) { Text("閉じる") }
     }
 }

@@ -19,3 +19,9 @@ captures
 node_modules/
 iosApp/Pods/
 iosApp/*.xcworkspace/
+
+# Environment variables
+.envrc
+.env
+*.xcconfig
+!*.xcconfig.example
