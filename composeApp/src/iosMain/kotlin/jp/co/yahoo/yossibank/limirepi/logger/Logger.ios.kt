@@ -1,4 +1,4 @@
-package jp.co.yahoo.yossibank.limirepi
+package jp.co.yahoo.yossibank.limirepi.logger
 
 import platform.Foundation.NSLog
 

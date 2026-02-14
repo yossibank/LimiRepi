@@ -1,7 +1,9 @@
-package jp.co.yahoo.yossibank.limirepi.ocr
+package jp.co.yahoo.yossibank.limirepi.receipt.ocr
 
-import jp.co.yahoo.yossibank.limirepi.AppLogger
 import jp.co.yahoo.yossibank.limirepi.config.ApiConfig
+import jp.co.yahoo.yossibank.limirepi.receipt.api.GeminiApiClient
+import jp.co.yahoo.yossibank.limirepi.receipt.model.ReceiptData
+import jp.co.yahoo.yossibank.limirepi.logger.AppLogger
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
@@ -33,6 +35,10 @@ actual class ReceiptOcrService {
         }
 
         return receiptData
+    }
+
+    actual fun close() {
+        geminiApiClient.close()
     }
 
     @OptIn(BetaInteropApi::class)

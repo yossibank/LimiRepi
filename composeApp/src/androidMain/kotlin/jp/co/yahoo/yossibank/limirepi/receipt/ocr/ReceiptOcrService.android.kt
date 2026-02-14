@@ -1,8 +1,16 @@
-package jp.co.yahoo.yossibank.limirepi.ocr
+package jp.co.yahoo.yossibank.limirepi.receipt.ocr
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Matrix
+import android.graphics.YuvImage
+import android.graphics.Rect
 import android.util.Base64
-import jp.co.yahoo.yossibank.limirepi.AppLogger
 import jp.co.yahoo.yossibank.limirepi.config.ApiConfig
+import jp.co.yahoo.yossibank.limirepi.receipt.api.GeminiApiClient
+import jp.co.yahoo.yossibank.limirepi.receipt.model.ReceiptData
+import jp.co.yahoo.yossibank.limirepi.logger.AppLogger
+import java.io.ByteArrayOutputStream
 
 actual class ReceiptOcrService {
     private val geminiApiClient = GeminiApiClient(ApiConfig.geminiApiKey)
@@ -25,5 +33,9 @@ actual class ReceiptOcrService {
         }
 
         return receiptData
+    }
+
+    actual fun close() {
+        geminiApiClient.close()
     }
 }

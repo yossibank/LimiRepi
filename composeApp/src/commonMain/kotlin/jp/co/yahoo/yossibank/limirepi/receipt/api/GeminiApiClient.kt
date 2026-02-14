@@ -1,4 +1,4 @@
-package jp.co.yahoo.yossibank.limirepi.ocr
+package jp.co.yahoo.yossibank.limirepi.receipt.api
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -8,8 +8,8 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
-import jp.co.yahoo.yossibank.limirepi.AppLogger
-import kotlinx.serialization.SerialName
+import jp.co.yahoo.yossibank.limirepi.logger.AppLogger
+import jp.co.yahoo.yossibank.limirepi.receipt.model.ReceiptData
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
@@ -34,10 +34,12 @@ class GeminiApiClient(private val apiKey: String) {
                     Content(
                         parts = listOf(
                             Part(text = prompt),
-                            Part(inlineData = InlineData(
-                                mimeType = "image/jpeg",
-                                data = imageBase64
-                            ))
+                            Part(
+                                inlineData = InlineData(
+                                    mimeType = "image/jpeg",
+                                    data = imageBase64
+                                )
+                            )
                         )
                     )
                 ),
@@ -45,7 +47,7 @@ class GeminiApiClient(private val apiKey: String) {
                     temperature = 0.1,
                     topK = 32,
                     topP = 1.0,
-                    maxOutputTokens = 2048,
+                    maxOutputTokens = 1024,
                     responseMimeType = "application/json"
                 )
             )
@@ -75,32 +77,15 @@ class GeminiApiClient(private val apiKey: String) {
 
     private fun buildPrompt(): String {
         return """
-あなたはレシート解析の専門家です。以下の画像からレシート情報を抽出し、JSON形式で返してください。
-
-以下のJSON形式で出力してください：
+レシート画像からJSON形式で情報を抽出してください：
 {
-  "storeName": "店舗名（見つからない場合はnull）",
-  "purchaseDate": "購入日（YYYY-MM-DD形式、見つからない場合はnull）",
-  "items": [
-    {
-      "name": "商品名",
-      "price": 価格（整数）,
-      "quantity": 個数（整数、デフォルト1）,
-      "category": "カテゴリ（food/drink/snack/daily/other、推測できない場合はnull）"
-    }
-  ],
-  "totalAmount": 合計金額（整数、見つからない場合はnull）,
-  "taxAmount": 消費税額（整数、見つからない場合はnull）
+  "storeName": "店舗名",
+  "purchaseDate": "YYYY-MM-DD",
+  "items": [{"name": "商品名", "price": 整数, "quantity": 整数, "category": "food/drink/snack/daily/other"}],
+  "totalAmount": 整数,
+  "taxAmount": 整数
 }
-
-重要な注意事項：
-- 商品名は正確に抽出してください
-- 価格は必ず整数で返してください
-- 合計金額、小計、税込み金額などを区別してください
-- 日付はYYYY-MM-DD形式に変換してください（例：2024/01/15 → 2024-01-15）
-- カテゴリは商品名から推測してください
-- 見つからない情報はnullにしてください
-- JSON形式のみを返し、他の説明は不要です
+見つからない項目はnull。JSON形式のみ返してください。
         """.trimIndent()
     }
 

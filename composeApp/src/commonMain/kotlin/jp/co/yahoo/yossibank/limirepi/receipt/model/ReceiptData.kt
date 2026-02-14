@@ -1,4 +1,4 @@
-package jp.co.yahoo.yossibank.limirepi.ocr
+package jp.co.yahoo.yossibank.limirepi.receipt.model
 
 import kotlinx.serialization.Serializable
 

@@ -1,17 +1,18 @@
-package jp.co.yahoo.yossibank.limirepi.camera
+package jp.co.yahoo.yossibank.limirepi.receipt.camera
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.UIKitViewController
-import jp.co.yahoo.yossibank.limirepi.AppLogger
-import jp.co.yahoo.yossibank.limirepi.ocr.ReceiptData
-import jp.co.yahoo.yossibank.limirepi.ocr.ReceiptOcrService
+import jp.co.yahoo.yossibank.limirepi.receipt.model.ReceiptData
+import jp.co.yahoo.yossibank.limirepi.receipt.ocr.ReceiptOcrService
+import jp.co.yahoo.yossibank.limirepi.logger.AppLogger
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.readValue
 import kotlinx.cinterop.usePinned
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import platform.AVFoundation.AVCaptureDevice
 import platform.AVFoundation.AVCaptureDeviceInput
@@ -45,19 +46,29 @@ actual fun CameraScreen(
 ) {
     val session = remember { AVCaptureSession() }
     val photoOutput = remember { AVCapturePhotoOutput() }
-    val coroutineScope = rememberCoroutineScope()
     val ocrService = remember { ReceiptOcrService() }
+
+    // DisposableEffectでリソースのクリーンアップ
+    DisposableEffect(Unit) {
+        onDispose {
+            ocrService.close()
+        }
+    }
 
     UIKitViewController(
         factory = {
             val controller = UIViewCapturer(
                 session = session,
                 photoOutput = photoOutput,
-                onParsed = { imageData ->
+                onImageCaptured = { imageData ->
+                    // 画像キャプチャ完了を通知（この時点でカメラ画面を閉じる）
                     dispatch_async(dispatch_get_main_queue()) {
+                        onCaptureFinished()
                         onAnalyzing(true)
                     }
-                    coroutineScope.launch {
+                    
+                    // 解析処理（バックグラウンドで実行）
+                    MainScope().launch {
                         try {
                             val receiptData = ocrService.scanReceiptWithAI(imageData)
                             dispatch_async(dispatch_get_main_queue()) {
@@ -72,8 +83,7 @@ actual fun CameraScreen(
                             }
                         }
                     }
-                },
-                onCaptureFinished = onCaptureFinished
+                }
             )
             setupCaptureSession(session, photoOutput)
             controller
@@ -114,8 +124,7 @@ private fun setupCaptureSession(
 class UIViewCapturer(
     private val session: AVCaptureSession,
     private val photoOutput: AVCapturePhotoOutput,
-    private val onParsed: (ByteArray) -> Unit,
-    private val onCaptureFinished: () -> Unit
+    private val onImageCaptured: (ByteArray) -> Unit
 ) : UIViewController(null, null), AVCapturePhotoCaptureDelegateProtocol {
 
     private val previewLayer = AVCaptureVideoPreviewLayer(session = session).apply {
@@ -148,12 +157,12 @@ class UIViewCapturer(
         error: NSError?
     ) {
         if (error != null) {
-            onCaptureFinished()
+            AppLogger.e("CameraScreen", "Capture error: ${error.localizedDescription}")
             return
         }
 
         val imageData = didFinishProcessingPhoto.fileDataRepresentation() ?: run {
-            onCaptureFinished()
+            AppLogger.e("CameraScreen", "Failed to get image data")
             return
         }
 
@@ -164,7 +173,6 @@ class UIViewCapturer(
         }
 
         // 画像データをコールバックに渡す
-        onParsed(byteArray)
-        onCaptureFinished()
+        onImageCaptured(byteArray)
     }
 }
