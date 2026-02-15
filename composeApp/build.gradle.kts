@@ -1,4 +1,6 @@
+import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.library)
@@ -7,6 +9,26 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.compose.multiplatform)
+    alias(libs.plugins.buildkonfig)
+}
+
+// local.propertiesからAPIキーを読み込む
+val localProperties = Properties().apply {
+    val localPropertiesFile = rootProject.file("local.properties")
+
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.inputStream().use { load(it) }
+    }
+}
+
+val geminiApiKey: String = localProperties.getProperty("GEMINI_API_KEY") ?: ""
+
+buildkonfig {
+    packageName = "jp.co.yahoo.yossibank.limirepi.config"
+
+    defaultConfigs {
+        buildConfigField(STRING, "GEMINI_API_KEY", geminiApiKey)
+    }
 }
 
 kotlin {

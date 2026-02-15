@@ -53,6 +53,7 @@ fun App() {
     var isCapturing by remember { mutableStateOf(false) }
     var showSheet by remember { mutableStateOf(false) }
     var isAnalyzing by remember { mutableStateOf(false) }
+    var analysisErrorMessage by remember { mutableStateOf<String?>(null) }
 
     MaterialTheme {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -79,7 +80,12 @@ fun App() {
                                 isAnalyzing = false
                                 if (data != null) {
                                     receiptData = data
+                                    analysisErrorMessage = null
                                     showSheet = true
+                                } else {
+                                    receiptData = null
+                                    showSheet = false
+                                    analysisErrorMessage = "レシートの読み込みに失敗しました。画像がぶれていないか確認して、もう一度お試しください。"
                                 }
                             }
                         )
@@ -106,12 +112,17 @@ fun App() {
                 }
                 // ホーム画面
                 else -> {
-                    Column(
-                        Modifier.fillMaxSize(),
-                        Arrangement.Center,
-                        Alignment.CenterHorizontally
-                    ) {
-                        Button(onClick = { showCamera = true }) { Text("📷 レシートをスキャン") }
+                        Column(
+                            Modifier.fillMaxSize(),
+                            Arrangement.Center,
+                            Alignment.CenterHorizontally
+                        ) {
+                        Button(onClick = {
+                            analysisErrorMessage = null
+                            showCamera = true
+                        }) {
+                            Text("📷 レシートをスキャン")
+                        }
                     }
                 }
             }
@@ -121,6 +132,19 @@ fun App() {
                     receiptData?.let { data ->
                         ReceiptResultSheet(data) { showSheet = false }
                     }
+                }
+            }
+
+            analysisErrorMessage?.let { message ->
+                ModalBottomSheet(onDismissRequest = { analysisErrorMessage = null }) {
+                    ReceiptLoadErrorSheet(
+                        message = message,
+                        onRetry = {
+                            analysisErrorMessage = null
+                            showCamera = true
+                        },
+                        onClose = { analysisErrorMessage = null }
+                    )
                 }
             }
         }
@@ -183,6 +207,17 @@ fun AnalyzingScreen(modifier: Modifier = Modifier) {
 
 @Composable
 fun ReceiptResultSheet(data: ReceiptData, onClose: () -> Unit) {
+    val fallbackSubtotal = data.items.sumOf { it.priceAfterDiscount }
+    val subtotalAmountToShow = data.subtotalAmount ?: fallbackSubtotal.takeIf { data.items.isNotEmpty() }
+    val taxBreakdownsToShow = data.taxBreakdowns
+    val taxAmountToShow = data.taxAmount ?: taxBreakdownsToShow.sumOf { it.amount }.takeIf { taxBreakdownsToShow.isNotEmpty() }
+    val totalAmountToShow = data.totalAmount
+        ?: if (subtotalAmountToShow != null && taxAmountToShow != null) {
+            subtotalAmountToShow + taxAmountToShow
+        } else {
+            null
+        }
+
     Column(Modifier.fillMaxWidth().padding(16.dp).heightIn(max = 700.dp)) {
         Text("スキャン結果", style = MaterialTheme.typography.titleLarge)
 
@@ -207,39 +242,96 @@ fun ReceiptResultSheet(data: ReceiptData, onClose: () -> Unit) {
         // 商品リスト
         LazyColumn(Modifier.weight(1f).padding(vertical = 16.dp)) {
             items(data.items) { item ->
-                Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), Arrangement.SpaceBetween) {
-                    Column(Modifier.weight(1f)) {
-                        Text(item.name)
-                        Row {
-                            if (item.quantity > 1) {
+                Column(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+                    // 商品名と価格
+                    Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
+                        Column(Modifier.weight(1f)) {
+                            Text(item.name, fontWeight = FontWeight.Medium)
+                            Row {
+                                if (item.quantity > 1) {
+                                    Text(
+                                        "数量: ${item.quantity}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color.Gray,
+                                        modifier = Modifier.padding(end = 8.dp)
+                                    )
+                                }
                                 Text(
-                                    "数量: ${item.quantity}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = Color.Gray,
-                                    modifier = Modifier.padding(end = 8.dp)
-                                )
-                            }
-                            item.category?.let { category ->
-                                Text(
-                                    "[$category]",
+                                    "[${item.category}]",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = Color.Gray
                                 )
                             }
                         }
+                        Text(
+                            text = "¥${item.price}",
+                            fontWeight = FontWeight.Bold
+                        )
                     }
-                    Text(
-                        text = "¥${item.price}",
-                        fontWeight = FontWeight.Bold
-                    )
+                    
+                    // 割引情報
+                    item.discount?.let { discount ->
+                        Row(
+                            Modifier.fillMaxWidth().padding(start = 8.dp, top = 4.dp),
+                            Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = discount.name + (discount.percentage?.let { " ($it%)" } ?: ""),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.Red
+                            )
+                            Text(
+                                text = "-¥${item.discountAmount}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.Red,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
                 }
                 HorizontalDivider(Modifier.alpha(0.3f))
             }
         }
 
-        // 合計金額
-        data.totalAmount?.let { total ->
+        // 小計・消費税内訳
+        if (subtotalAmountToShow != null || taxBreakdownsToShow.isNotEmpty() || taxAmountToShow != null) {
             HorizontalDivider()
+            subtotalAmountToShow?.let { subtotal ->
+                Row(
+                    Modifier.fillMaxWidth().padding(top = 12.dp),
+                    Arrangement.SpaceBetween
+                ) {
+                    Text("小計", fontWeight = FontWeight.Medium)
+                    Text("¥$subtotal", fontWeight = FontWeight.Medium)
+                }
+            }
+
+            if (taxBreakdownsToShow.isNotEmpty()) {
+                taxBreakdownsToShow.forEach { tax ->
+                    Row(
+                        Modifier.fillMaxWidth().padding(top = 6.dp),
+                        Arrangement.SpaceBetween
+                    ) {
+                        Text(tax.label, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                        Text("¥${tax.amount}", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                    }
+                }
+            } else {
+                taxAmountToShow?.let { taxAmount ->
+                    Row(
+                        Modifier.fillMaxWidth().padding(top = 6.dp),
+                        Arrangement.SpaceBetween
+                    ) {
+                        Text("消費税", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                        Text("¥$taxAmount", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                    }
+                }
+            }
+        }
+
+        // 合計金額
+        totalAmountToShow?.let { total ->
+            HorizontalDivider(Modifier.padding(top = 12.dp))
             Row(
                 Modifier.fillMaxWidth().padding(vertical = 16.dp),
                 Arrangement.SpaceBetween
@@ -258,5 +350,27 @@ fun ReceiptResultSheet(data: ReceiptData, onClose: () -> Unit) {
         }
 
         Button(onClick = onClose, Modifier.fillMaxWidth()) { Text("閉じる") }
+    }
+}
+
+@Composable
+fun ReceiptLoadErrorSheet(
+    message: String,
+    onRetry: () -> Unit,
+    onClose: () -> Unit
+) {
+    Column(Modifier.fillMaxWidth().padding(16.dp)) {
+        Text("⚠️ 読み込みエラー", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(12.dp))
+        Text(message, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+        Spacer(Modifier.height(16.dp))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(onClick = onRetry, modifier = Modifier.weight(1f)) {
+                Text("再撮影する")
+            }
+            TextButton(onClick = onClose, modifier = Modifier.weight(1f)) {
+                Text("閉じる")
+            }
+        }
     }
 }
