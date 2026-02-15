@@ -18,15 +18,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import jp.co.yahoo.yossibank.limirepi.logger.AppLogger
 import jp.co.yahoo.yossibank.limirepi.receipt.model.ReceiptData
 import jp.co.yahoo.yossibank.limirepi.receipt.ocr.ReceiptOcrService
-import jp.co.yahoo.yossibank.limirepi.logger.AppLogger
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 
@@ -53,7 +52,7 @@ actual fun CameraScreen(
     LaunchedEffect(captureTrigger) {
         if (captureTrigger) {
             val mainExecutor = ContextCompat.getMainExecutor(context)
-            
+
             imageCapture.takePicture(
                 mainExecutor,
                 object : ImageCapture.OnImageCapturedCallback() {
@@ -70,7 +69,7 @@ actual fun CameraScreen(
                                 val jpegBytes = imageProxyToJpegByteArray(imageProxy)
 
                                 // Gemini APIで解析
-                                val receiptData = ocrService.scanReceiptWithAI(jpegBytes)
+                                val receiptData = ocrService.scanReceipt(jpegBytes)
 
                                 onAnalyzing(false)
                                 onParsed(receiptData)
@@ -126,25 +125,26 @@ actual fun CameraScreen(
 @SuppressLint("UnsafeOptInUsageError")
 private fun imageProxyToJpegByteArray(imageProxy: ImageProxy): ByteArray {
     val image = imageProxy.image ?: throw IllegalStateException("Image is null")
-    
+
     return when (imageProxy.format) {
         ImageFormat.JPEG -> {
             // JPEG形式の場合はそのまま使用
             val buffer = imageProxy.planes[0].buffer
             val bytes = ByteArray(buffer.remaining())
             buffer.get(bytes)
-            
+
             // Bitmapにデコードして縮小
             val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
             val resizedBitmap = resizeBitmapForOCR(bitmap)
-            
+
             val out = ByteArrayOutputStream()
             resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 85, out)
             resizedBitmap.recycle()
             bitmap.recycle()
-            
+
             out.toByteArray()
         }
+
         ImageFormat.YUV_420_888 -> {
             // YUV形式の場合はJPEGに変換
             val yBuffer = imageProxy.planes[0].buffer
@@ -164,22 +164,23 @@ private fun imageProxyToJpegByteArray(imageProxy: ImageProxy): ByteArray {
             val yuvImage = YuvImage(nv21, ImageFormat.NV21, image.width, image.height, null)
             val out = ByteArrayOutputStream()
             yuvImage.compressToJpeg(Rect(0, 0, image.width, image.height), 85, out)
-            
+
             // 回転補正
             val bitmap = BitmapFactory.decodeByteArray(out.toByteArray(), 0, out.size())
             val rotatedBitmap = rotateBitmap(bitmap, imageProxy.imageInfo.rotationDegrees.toFloat())
-            
+
             // OCR用に画像を縮小
             val resizedBitmap = resizeBitmapForOCR(rotatedBitmap)
-            
+
             val finalOut = ByteArrayOutputStream()
             resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 85, finalOut)
             resizedBitmap.recycle()
             rotatedBitmap.recycle()
             bitmap.recycle()
-            
+
             finalOut.toByteArray()
         }
+
         else -> {
             throw IllegalArgumentException("Unsupported image format: ${imageProxy.format}")
         }
@@ -193,24 +194,24 @@ private fun imageProxyToJpegByteArray(imageProxy: ImageProxy): ByteArray {
 private fun resizeBitmapForOCR(bitmap: Bitmap): Bitmap {
     val maxWidth = 1920
     val maxHeight = 1920
-    
+
     val width = bitmap.width
     val height = bitmap.height
-    
+
     // すでに十分小さい場合はそのまま返す
     if (width <= maxWidth && height <= maxHeight) {
         return bitmap
     }
-    
+
     // アスペクト比を維持しながら縮小
     val scale = minOf(
         maxWidth.toFloat() / width,
         maxHeight.toFloat() / height
     )
-    
+
     val newWidth = (width * scale).toInt()
     val newHeight = (height * scale).toInt()
-    
+
     return Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true)
 }
 
@@ -219,7 +220,7 @@ private fun resizeBitmapForOCR(bitmap: Bitmap): Bitmap {
  */
 private fun rotateBitmap(bitmap: Bitmap, degrees: Float): Bitmap {
     if (degrees == 0f) return bitmap
-    
+
     val matrix = Matrix().apply { postRotate(degrees) }
     return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
 }

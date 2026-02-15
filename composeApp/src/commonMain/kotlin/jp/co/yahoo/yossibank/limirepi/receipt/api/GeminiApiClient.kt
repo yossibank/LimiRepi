@@ -9,10 +9,22 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import jp.co.yahoo.yossibank.limirepi.logger.AppLogger
+import jp.co.yahoo.yossibank.limirepi.receipt.api.models.Candidate
+import jp.co.yahoo.yossibank.limirepi.receipt.api.models.Content
+import jp.co.yahoo.yossibank.limirepi.receipt.api.models.GeminiRequest
+import jp.co.yahoo.yossibank.limirepi.receipt.api.models.GeminiResponse
+import jp.co.yahoo.yossibank.limirepi.receipt.api.models.GenerationConfig
+import jp.co.yahoo.yossibank.limirepi.receipt.api.models.InlineData
+import jp.co.yahoo.yossibank.limirepi.receipt.api.models.Part
+import jp.co.yahoo.yossibank.limirepi.receipt.api.models.UsageMetadata
 import jp.co.yahoo.yossibank.limirepi.receipt.model.ReceiptData
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlin.math.round
 
+/**
+ * Gemini APIクライアント
+ * レシート画像解析用のAPI通信を担当
+ */
 class GeminiApiClient(private val apiKey: String) {
 
     private val jsonFormat = Json {
@@ -26,158 +38,151 @@ class GeminiApiClient(private val apiKey: String) {
         }
     }
 
-    suspend fun analyzeReceipt(imageBase64: String): ReceiptData? {
+    /**
+     * レシート画像を解析
+     * @param imageBase64 Base64エンコードされた画像データ
+     * @return 解析結果、エラー時はnull
+     */
+    suspend fun analyzeReceipt(imageBase64: String): Result<ReceiptData> {
         return try {
-            val prompt = buildPrompt()
-            val request = GeminiRequest(
-                contents = listOf(
-                    Content(
-                        parts = listOf(
-                            Part(text = prompt),
-                            Part(
-                                inlineData = InlineData(
-                                    mimeType = "image/jpeg",
-                                    data = imageBase64
-                                )
-                            )
-                        )
-                    )
-                ),
-                generationConfig = GenerationConfig(
-                    temperature = 0.1,
-                    topK = 32,
-                    topP = 1.0,
-                    maxOutputTokens = 1024,
-                    responseMimeType = "application/json"
-                )
-            )
+            val request = buildRequest(imageBase64)
 
-            AppLogger.d("GeminiApi", "Sending request to Gemini API...")
+            AppLogger.d(TAG, "Sending request to Gemini API...")
 
-            val response: GeminiResponse = httpClient.post(
-                "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=$apiKey"
-            ) {
+            val response: GeminiResponse = httpClient.post(buildUrl()) {
                 contentType(ContentType.Application.Json)
                 setBody(request)
             }.body()
 
-            // エラーチェック
-            response.error?.let { error ->
-                AppLogger.e("GeminiApi", "API error: ${error.message} (code: ${error.code})")
-                return null
-            }
-
-            parseResponse(response)
+            logUsageAndCost(response.usageMetadata)
+            handleResponse(response)
         } catch (e: Exception) {
-            AppLogger.e("GeminiApi", "Error analyzing receipt: ${e.message}")
+            AppLogger.e(TAG, "Error analyzing receipt: ${e.message}")
             e.printStackTrace()
-            null
+            Result.failure(e)
         }
     }
 
-    private fun buildPrompt(): String {
-        return """
-レシート画像からJSON形式で情報を抽出してください：
-{
-  "storeName": "店舗名",
-  "purchaseDate": "YYYY-MM-DD",
-  "items": [{"name": "商品名", "price": 整数, "quantity": 整数, "category": "food/drink/snack/daily/other"}],
-  "totalAmount": 整数,
-  "taxAmount": 整数
-}
-見つからない項目はnull。JSON形式のみ返してください。
-        """.trimIndent()
+    private fun buildUrl(): String {
+        return "${GeminiApiConfig.BASE_URL}/models/${GeminiApiConfig.MODEL}:generateContent?key=$apiKey"
     }
 
-    private fun parseResponse(response: GeminiResponse): ReceiptData? {
-        // プロンプトがブロックされた場合
+    private fun buildRequest(imageBase64: String): GeminiRequest {
+        return GeminiRequest(
+            contents = listOf(
+                Content(
+                    parts = listOf(
+                        Part(text = PromptBuilder.buildReceiptAnalysisPrompt()),
+                        Part(
+                            inlineData = InlineData(
+                                mimeType = GeminiApiConfig.ImageParams.MIME_TYPE,
+                                data = imageBase64
+                            )
+                        )
+                    )
+                )
+            ),
+            generationConfig = GenerationConfig(
+                temperature = GeminiApiConfig.GenerationParams.TEMPERATURE,
+                topK = GeminiApiConfig.GenerationParams.TOP_K,
+                topP = GeminiApiConfig.GenerationParams.TOP_P,
+                maxOutputTokens = GeminiApiConfig.GenerationParams.MAX_OUTPUT_TOKENS,
+                responseMimeType = GeminiApiConfig.GenerationParams.RESPONSE_MIME_TYPE
+            )
+        )
+    }
+
+    private fun handleResponse(response: GeminiResponse): Result<ReceiptData> {
+        response.error?.let { error ->
+            val errorMessage = "API error: ${error.message} (code: ${error.code})"
+            AppLogger.e(TAG, errorMessage)
+            return Result.failure(GeminiApiException(errorMessage))
+        }
+
         response.promptFeedback?.blockReason?.let { reason ->
-            AppLogger.e("GeminiApi", "Prompt blocked: $reason")
-            return null
+            val errorMessage = "Prompt blocked: $reason"
+            AppLogger.e(TAG, errorMessage)
+            return Result.failure(PromptBlockedException(reason))
         }
 
-        val jsonText = response.candidates.firstOrNull()?.content?.parts?.firstOrNull()?.text
+        return parseReceiptData(response.candidates)
+    }
+
+    private fun parseReceiptData(candidates: List<Candidate>): Result<ReceiptData> {
+        val jsonText = candidates.firstOrNull()?.content?.parts?.firstOrNull()?.text
+
         if (jsonText == null) {
-            AppLogger.e("GeminiApi", "No text in response")
-            return null
+            AppLogger.e(TAG, "No text in response")
+            return Result.failure(NoResponseException())
         }
 
         return try {
-            jsonFormat.decodeFromString<ReceiptData>(jsonText)
+            val receiptData = jsonFormat.decodeFromString<ReceiptData>(jsonText)
+            Result.success(receiptData)
         } catch (e: Exception) {
-            AppLogger.e("GeminiApi", "Error parsing receipt data: ${e.message}")
-            AppLogger.d("GeminiApi", "Raw response: $jsonText")
-            null
+            AppLogger.e(TAG, "Error parsing receipt data: ${e.message}")
+            AppLogger.d(TAG, "Raw response: $jsonText")
+            Result.failure(ParseException(jsonText, e))
         }
+    }
+
+    private fun logUsageAndCost(usageMetadata: UsageMetadata?) {
+        if (usageMetadata == null) {
+            AppLogger.w(TAG, "Gemini usage metadata is unavailable")
+            return
+        }
+
+        val inputTokens = usageMetadata.promptTokenCount
+        val outputTokens = usageMetadata.candidatesTokenCount
+        val totalTokens = if (usageMetadata.totalTokenCount > 0) {
+            usageMetadata.totalTokenCount
+        } else {
+            inputTokens + outputTokens
+        }
+
+        val inputCostUsd =
+            (inputTokens / TOKENS_PER_MILLION) * GeminiApiConfig.Pricing.INPUT_PRICE_PER_MILLION_USD
+        val outputCostUsd =
+            (outputTokens / TOKENS_PER_MILLION) * GeminiApiConfig.Pricing.OUTPUT_PRICE_PER_MILLION_USD
+        val totalCostUsd = inputCostUsd + outputCostUsd
+        val totalCostJpy = totalCostUsd * USD_TO_JPY_RATE
+        val formattedTotalCostJpy = formatYenAmount(totalCostJpy)
+
+        AppLogger.i(
+            TAG,
+            "Gemini usage: input=$inputTokens, output=$outputTokens, total=$totalTokens, estimatedCostJpy=${formattedTotalCostJpy}円"
+        )
+    }
+
+    private fun formatYenAmount(costYen: Double): String {
+        val scaled = round(costYen * COST_DECIMAL_SCALE).toLong()
+        val integerPart = scaled / COST_DECIMAL_SCALE_LONG
+        val fractionPart =
+            (scaled % COST_DECIMAL_SCALE_LONG).toString().padStart(COST_DECIMAL_DIGITS, '0')
+        return "$integerPart.$fractionPart"
     }
 
     fun close() {
         httpClient.close()
     }
+
+    companion object {
+        private const val TAG = "GeminiApi"
+        private const val TOKENS_PER_MILLION = 1_000_000.0
+        private const val COST_DECIMAL_SCALE = 1_000_000.0
+        private const val COST_DECIMAL_SCALE_LONG = 1_000_000L
+        private const val COST_DECIMAL_DIGITS = 8
+        private const val USD_TO_JPY_RATE = 155.0
+    }
 }
 
-@Serializable
-data class GeminiRequest(
-    val contents: List<Content>,
-    val generationConfig: GenerationConfig
-)
+/**
+ * Gemini API関連の例外
+ */
+sealed class GeminiException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
-@Serializable
-data class Content(
-    val parts: List<Part>
-)
-
-@Serializable
-data class Part(
-    val text: String? = null,
-    val inlineData: InlineData? = null
-)
-
-@Serializable
-data class InlineData(
-    val mimeType: String,
-    val data: String
-)
-
-@Serializable
-data class GenerationConfig(
-    val temperature: Double,
-    val topK: Int,
-    val topP: Double,
-    val maxOutputTokens: Int,
-    val responseMimeType: String
-)
-
-@Serializable
-data class GeminiResponse(
-    val candidates: List<Candidate> = emptyList(),
-    val error: GeminiError? = null,
-    val promptFeedback: PromptFeedback? = null
-)
-
-@Serializable
-data class GeminiError(
-    val code: Int? = null,
-    val message: String? = null,
-    val status: String? = null
-)
-
-@Serializable
-data class PromptFeedback(
-    val blockReason: String? = null
-)
-
-@Serializable
-data class Candidate(
-    val content: ContentResponse
-)
-
-@Serializable
-data class ContentResponse(
-    val parts: List<PartResponse>
-)
-
-@Serializable
-data class PartResponse(
-    val text: String
-)
+class GeminiApiException(message: String) : GeminiException(message)
+class PromptBlockedException(blockReason: String) : GeminiException("Prompt blocked: $blockReason")
+class NoResponseException : GeminiException("No response from API")
+class ParseException(val rawResponse: String, cause: Throwable) :
+    GeminiException("Failed to parse response", cause)

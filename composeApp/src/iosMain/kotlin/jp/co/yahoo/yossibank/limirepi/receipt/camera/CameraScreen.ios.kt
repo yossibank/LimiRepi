@@ -5,9 +5,9 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.UIKitViewController
+import jp.co.yahoo.yossibank.limirepi.logger.AppLogger
 import jp.co.yahoo.yossibank.limirepi.receipt.model.ReceiptData
 import jp.co.yahoo.yossibank.limirepi.receipt.ocr.ReceiptOcrService
-import jp.co.yahoo.yossibank.limirepi.logger.AppLogger
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.readValue
@@ -66,11 +66,11 @@ actual fun CameraScreen(
                         onCaptureFinished()
                         onAnalyzing(true)
                     }
-                    
+
                     // 解析処理（バックグラウンドで実行）
                     MainScope().launch {
                         try {
-                            val receiptData = ocrService.scanReceiptWithAI(imageData)
+                            val receiptData = ocrService.scanReceipt(imageData)
                             dispatch_async(dispatch_get_main_queue()) {
                                 onAnalyzing(false)
                                 onParsed(receiptData)

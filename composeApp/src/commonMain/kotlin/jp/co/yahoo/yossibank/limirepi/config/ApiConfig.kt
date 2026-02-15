@@ -1,5 +1,5 @@
 package jp.co.yahoo.yossibank.limirepi.config
 
-expect object ApiConfig {
-    val geminiApiKey: String
+object ApiConfig {
+    val geminiApiKey: String = BuildKonfig.GEMINI_API_KEY
 }
