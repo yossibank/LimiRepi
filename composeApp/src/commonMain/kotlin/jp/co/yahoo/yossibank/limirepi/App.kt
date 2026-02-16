@@ -40,114 +40,45 @@ import io.github.alexzhirkevich.compottie.LottieCompositionSpec
 import io.github.alexzhirkevich.compottie.animateLottieCompositionAsState
 import io.github.alexzhirkevich.compottie.rememberLottieComposition
 import io.github.alexzhirkevich.compottie.rememberLottiePainter
+import jp.co.yahoo.yossibank.limirepi.navigation.PlatformTabScaffold
+import jp.co.yahoo.yossibank.limirepi.navigation.TabAction
+import jp.co.yahoo.yossibank.limirepi.navigation.TabItem
 import jp.co.yahoo.yossibank.limirepi.receipt.camera.CameraScreen
 import jp.co.yahoo.yossibank.limirepi.receipt.model.ReceiptData
+import jp.co.yahoo.yossibank.limirepi.screen.FridgeScreen
+import jp.co.yahoo.yossibank.limirepi.screen.RecipeGenerateScreen
+import jp.co.yahoo.yossibank.limirepi.screen.RecipeListScreen
+import jp.co.yahoo.yossibank.limirepi.screen.RegisterScreen
+import jp.co.yahoo.yossibank.limirepi.screen.SettingsScreen
 import limirepi.composeapp.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun App() {
-    var showCamera by remember { mutableStateOf(false) }
-    var receiptData by remember { mutableStateOf<ReceiptData?>(null) }
-    var isCapturing by remember { mutableStateOf(false) }
-    var showSheet by remember { mutableStateOf(false) }
-    var isAnalyzing by remember { mutableStateOf(false) }
-    var analysisErrorMessage by remember { mutableStateOf<String?>(null) }
+    var selectedTab by remember { mutableStateOf(TabItem.FRIDGE) }
 
     MaterialTheme {
-        Box(modifier = Modifier.fillMaxSize()) {
-            when {
-                // AI解析画面
-                isAnalyzing -> {
-                    AnalyzingScreen()
-                }
-                // カメラ画面
-                showCamera -> {
-                    Box(Modifier.fillMaxSize()) {
-                        CameraScreen(
-                            modifier = Modifier.fillMaxSize(),
-                            captureTrigger = isCapturing,
-                            onCaptureFinished = {
-                                isCapturing = false
-                                // 画像キャプチャ完了後にカメラ画面を閉じる
-                                showCamera = false
-                            },
-                            onAnalyzing = { analyzing ->
-                                isAnalyzing = analyzing
-                            },
-                            onParsed = { data ->
-                                isAnalyzing = false
-                                if (data != null) {
-                                    receiptData = data
-                                    analysisErrorMessage = null
-                                    showSheet = true
-                                } else {
-                                    receiptData = null
-                                    showSheet = false
-                                    analysisErrorMessage = "レシートの読み込みに失敗しました。画像がぶれていないか確認して、もう一度お試しください。"
-                                }
-                            }
-                        )
-
-                        // UIボタン
-                        Column(Modifier.align(Alignment.BottomCenter).padding(bottom = 48.dp)) {
-                            Button(
-                                onClick = { isCapturing = true },
-                                modifier = Modifier.size(72.dp),
-                                shape = CircleShape,
-                                colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                                enabled = !isAnalyzing
-                            ) {
-                                Icon(Icons.Default.PhotoCamera, "撮影", tint = Color.Black)
-                            }
-                            TextButton(
-                                onClick = { showCamera = false },
-                                enabled = !isAnalyzing
-                            ) {
-                                Text("キャンセル", color = Color.White)
-                            }
-                        }
-                    }
-                }
-                // ホーム画面
-                else -> {
-                        Column(
-                            Modifier.fillMaxSize(),
-                            Arrangement.Center,
-                            Alignment.CenterHorizontally
-                        ) {
-                        Button(onClick = {
-                            analysisErrorMessage = null
-                            showCamera = true
-                        }) {
-                            Text("📷 レシートをスキャン")
-                        }
-                    }
-                }
-            }
-
-            if (showSheet) {
-                ModalBottomSheet(onDismissRequest = { showSheet = false }) {
-                    receiptData?.let { data ->
-                        ReceiptResultSheet(data) { showSheet = false }
-                    }
-                }
-            }
-
-            analysisErrorMessage?.let { message ->
-                ModalBottomSheet(onDismissRequest = { analysisErrorMessage = null }) {
-                    ReceiptLoadErrorSheet(
-                        message = message,
-                        onRetry = {
-                            analysisErrorMessage = null
-                            showCamera = true
-                        },
-                        onClose = { analysisErrorMessage = null }
-                    )
-                }
-            }
+        PlatformTabScaffold(
+            selectedTab = selectedTab,
+            onTabSelected = { selectedTab = it },
+        ) { tab ->
+            TabContent(tab = tab)
         }
+    }
+}
+
+@Composable
+fun TabContent(
+    tab: TabItem,
+    modifier: Modifier = Modifier
+) {
+    when (tab) {
+        TabItem.FRIDGE -> FridgeScreen(modifier)
+        TabItem.REGISTER -> RegisterScreen(modifier)
+        TabItem.RECIPE_GENERATE -> RecipeGenerateScreen(modifier)
+        TabItem.RECIPE_LIST -> RecipeListScreen(modifier)
+        TabItem.SETTINGS -> SettingsScreen(modifier)
     }
 }
 

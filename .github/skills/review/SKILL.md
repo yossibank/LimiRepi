@@ -1,6 +1,6 @@
 ---
 name: review
-description: Review the code and provide feedback
+description: コードをレビューし、フィードバックを提供するスキル
 ---
 
 # 概要
