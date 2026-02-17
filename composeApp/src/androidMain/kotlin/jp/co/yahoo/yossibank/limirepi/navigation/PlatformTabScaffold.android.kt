@@ -1,5 +1,6 @@
 package jp.co.yahoo.yossibank.limirepi.navigation
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -31,6 +32,8 @@ actual fun PlatformTabScaffold(
             }
         }
     ) { innerPadding ->
-        content(selectedTab)
+        Box(modifier = Modifier.padding(innerPadding)) {
+            content(selectedTab)
+        }
     }
 }

@@ -42,7 +42,8 @@ fun RecipeGenerateScreen(modifier: Modifier = Modifier) {
 
         Text(
             text = "AIが食材からレシピを提案します",
-            style = MaterialTheme.typography.bodyMedium, color = Color.Gray
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color.Gray
         )
     }
 }
