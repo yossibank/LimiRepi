@@ -1,13 +1,19 @@
 package jp.co.yahoo.yossibank.limirepi
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.window.ComposeUIViewController
-import jp.co.yahoo.yossibank.limirepi.navigation.TabItem
+import jp.co.yahoo.yossibank.limirepi.ui.tab.TabItem
 
 // SwiftUI TabView用に各タブのComposeコンテンツを個別に提供する
 fun TabContentViewController(tabPosition: Int) = ComposeUIViewController {
+    var selectedTab by remember { mutableStateOf(TabItem.fromPosition(tabPosition)) }
+
     MaterialTheme {
-        TabContent(tab = TabItem.fromPosition(tabPosition))
+        App()
     }
 }
 

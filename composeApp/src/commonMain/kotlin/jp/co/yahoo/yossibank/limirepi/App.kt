@@ -8,13 +8,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import jp.co.yahoo.yossibank.limirepi.navigation.PlatformTabScaffold
-import jp.co.yahoo.yossibank.limirepi.navigation.TabItem
-import jp.co.yahoo.yossibank.limirepi.screen.FridgeScreen
-import jp.co.yahoo.yossibank.limirepi.screen.RecipeGenerateScreen
-import jp.co.yahoo.yossibank.limirepi.screen.RecipeListScreen
-import jp.co.yahoo.yossibank.limirepi.screen.RegisterScreen
-import jp.co.yahoo.yossibank.limirepi.screen.SettingsScreen
+import jp.co.yahoo.yossibank.limirepi.feature.fridge.model.ui.FridgeScreen
+import jp.co.yahoo.yossibank.limirepi.feature.receipt.ui.RegisterScreen
+import jp.co.yahoo.yossibank.limirepi.feature.recipeGenerate.RecipeGenerateScreen
+import jp.co.yahoo.yossibank.limirepi.feature.recipeList.RecipeListScreen
+import jp.co.yahoo.yossibank.limirepi.feature.setting.SettingsScreen
+import jp.co.yahoo.yossibank.limirepi.ui.tab.PlatformTabScaffold
+import jp.co.yahoo.yossibank.limirepi.ui.tab.TabItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,7 +37,7 @@ fun TabContent(
     modifier: Modifier = Modifier
 ) {
     when (tab) {
-        TabItem.FRIDGE -> FridgeScreen(modifier)
+        TabItem.FRIDGE -> FridgeScreen(modifier = modifier)
         TabItem.REGISTER -> RegisterScreen(modifier)
         TabItem.RECIPE_GENERATE -> RecipeGenerateScreen(modifier)
         TabItem.RECIPE_LIST -> RecipeListScreen(modifier)
