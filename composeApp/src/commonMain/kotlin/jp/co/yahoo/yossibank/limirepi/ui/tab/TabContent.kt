@@ -2,7 +2,7 @@ package jp.co.yahoo.yossibank.limirepi.ui.tab
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import jp.co.yahoo.yossibank.limirepi.feature.fridge.model.ui.FridgeScreen
+import jp.co.yahoo.yossibank.limirepi.feature.fridge.ui.FridgeScreen
 import jp.co.yahoo.yossibank.limirepi.feature.receipt.ui.RegisterScreen
 import jp.co.yahoo.yossibank.limirepi.feature.recipeGenerate.RecipeGenerateScreen
 import jp.co.yahoo.yossibank.limirepi.feature.recipeList.RecipeListScreen

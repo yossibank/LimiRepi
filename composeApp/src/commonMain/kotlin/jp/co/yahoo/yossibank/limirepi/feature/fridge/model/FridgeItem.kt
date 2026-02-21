@@ -45,7 +45,7 @@ data class FridgeItem(
      */
     val expirationDisplayText: String
         get() = when {
-            isExpired -> "！期限切れ"
+            isExpired -> "期限切れ"
             daysUntilExpiration == 0 -> "今日まで"
             daysUntilExpiration == Int.MAX_VALUE -> ""
             else -> "あと${daysUntilExpiration}日"
