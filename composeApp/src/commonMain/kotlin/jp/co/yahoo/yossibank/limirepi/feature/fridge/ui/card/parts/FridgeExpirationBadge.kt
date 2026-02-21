@@ -49,7 +49,6 @@ fun FridgeExpirationBadge(
     }
 
     val dateText = if (item.expirationDate.isNotEmpty()) {
-        // yyyy-MM-dd → M/d 形式に変換
         val parts = item.expirationDate.split("-")
         if (parts.size == 3) " · ${parts[1].trimStart('0')}/${parts[2].trimStart('0')}" else ""
     } else {

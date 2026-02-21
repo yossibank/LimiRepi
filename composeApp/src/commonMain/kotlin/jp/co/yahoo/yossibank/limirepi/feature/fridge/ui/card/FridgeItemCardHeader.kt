@@ -57,7 +57,6 @@ fun FridgeItemCategoryHeader(
         label = "rotationAngle"
     )
 
-    // アイテムカードと明確に区別するフルブリード セクションヘッダー
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -83,7 +82,6 @@ fun FridgeItemCategoryHeader(
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 白背景の円形アイコン（アイテムカードの角丸ボックスと明確に差別化）
             Box(
                 modifier = Modifier
                     .size(48.dp)
@@ -99,7 +97,6 @@ fun FridgeItemCategoryHeader(
 
             Spacer(Modifier.width(14.dp))
 
-            // カテゴリ名（白テキストで背景色に映える）
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = state.category.displayName,
@@ -119,7 +116,6 @@ fun FridgeItemCategoryHeader(
                 )
             }
 
-            // 展開/折り畳みボタン（白背景 + 矢印）
             Surface(
                 modifier = Modifier.size(34.dp),
                 shape = CircleShape,

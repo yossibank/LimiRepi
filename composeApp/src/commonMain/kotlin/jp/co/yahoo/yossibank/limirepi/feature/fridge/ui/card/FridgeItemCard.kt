@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -21,7 +22,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -77,51 +77,26 @@ fun FridgeItemCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 0.dp, end = 16.dp, top = 14.dp, bottom = 14.dp),
+                    .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 14.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 左端: カテゴリカラーストライプ
                 Box(
                     modifier = Modifier
-                        .width(4.dp)
-                        .height(56.dp)
-                        .clip(RoundedCornerShape(topEnd = 4.dp, bottomEnd = 4.dp))
+                        .size(48.dp)
+                        .clip(CircleShape)
                         .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    accentColor.copy(alpha = 0.9f),
-                                    accentColor.copy(alpha = 0.5f)
-                                )
-                            )
-                        )
-                )
-
-                Spacer(Modifier.width(12.dp))
-
-                // 絵文字アイコンボックス（56dp）
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(
-                            Brush.linearGradient(
-                                colors = listOf(
-                                    accentColor.copy(alpha = 0.25f),
-                                    accentColor.copy(alpha = 0.08f)
-                                )
-                            )
+                            if (isExpired) Color(0x40EF5350) else accentColor
                         ),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = item.emoji,
-                        fontSize = 28.sp
+                        fontSize = 24.sp
                     )
                 }
 
                 Spacer(Modifier.width(14.dp))
 
-                // 中央: 食材名 + 賞味期限バッジ
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = item.name,
@@ -145,9 +120,8 @@ fun FridgeItemCard(
 
                 Spacer(Modifier.width(12.dp))
 
-                // 右端: 数量バッジ
                 Surface(
-                    shape = RoundedCornerShape(10.dp),
+                    shape = RoundedCornerShape(20.dp),
                     color = accentColor.copy(alpha = 0.15f)
                 ) {
                     Text(
@@ -156,12 +130,11 @@ fun FridgeItemCard(
                         fontWeight = FontWeight.ExtraBold,
                         fontSize = 13.sp,
                         color = accentColor.copy(alpha = 0.9f),
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                     )
                 }
             }
 
-            // 下部フルウィズ残量ゲージ
             FridgeRemainingGauge(
                 percent = item.remainingPercent,
                 modifier = Modifier

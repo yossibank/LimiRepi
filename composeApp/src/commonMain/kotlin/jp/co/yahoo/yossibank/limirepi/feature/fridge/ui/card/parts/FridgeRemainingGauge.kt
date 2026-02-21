@@ -47,15 +47,15 @@ fun FridgeRemainingGauge(
         Box(
             modifier = Modifier
                 .weight(1f)
-                .height(10.dp)
-                .clip(RoundedCornerShape(5.dp))
-                .background(gaugeColor.copy(alpha = 0.15f))
+                .height(8.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(gaugeColor.copy(alpha = 0.12f))
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth(fraction)
                     .fillMaxSize()
-                    .clip(RoundedCornerShape(5.dp))
+                    .clip(RoundedCornerShape(4.dp))
                     .background(
                         horizontalGradient(
                             colors = listOf(
@@ -74,8 +74,7 @@ fun FridgeRemainingGauge(
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.Bold,
             fontSize = 12.sp,
-            color = gaugeColor,
-            modifier = Modifier.width(40.dp)
+            color = gaugeColor
         )
     }
 }
