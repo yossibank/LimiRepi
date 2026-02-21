@@ -10,19 +10,32 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import jp.co.yahoo.yossibank.limirepi.feature.fridge.data.FridgePreview
 import jp.co.yahoo.yossibank.limirepi.feature.fridge.model.FridgeCategory
 import jp.co.yahoo.yossibank.limirepi.feature.fridge.model.FridgeItem
@@ -122,6 +135,7 @@ fun FridgeScreen(modifier: Modifier = Modifier) {
                     modifier = Modifier.weight(1f)
                 )
             } else {
+                FridgeSummaryStrip(items = filteredItems)
                 FridgeCategoryList(
                     groupedItems = groupedItems,
                     collapsedCategories = collapsedCategories,
@@ -136,15 +150,79 @@ fun FridgeScreen(modifier: Modifier = Modifier) {
 }
 
 @Composable
+private fun FridgeSummaryStrip(
+    items: List<FridgeItem>,
+    modifier: Modifier = Modifier
+) {
+    val expiredCount = items.count { it.isExpired }
+    val urgentCount = items.count { it.isUrgent }
+    val warningCount = items.count { it.isWarning }
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "🍱 ${items.size}件",
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Spacer(Modifier.weight(1f))
+
+        if (expiredCount > 0) {
+            FridgeSummaryChip(text = "☠️ $expiredCount", color = Color(0xFFEF5350))
+        }
+        if (urgentCount > 0) {
+            FridgeSummaryChip(text = "🔥 $urgentCount", color = Color(0xFFFF7043))
+        }
+        if (warningCount > 0) {
+            FridgeSummaryChip(text = "⚠️ $warningCount", color = Color(0xFFFFA726))
+        }
+    }
+}
+
+@Composable
+private fun FridgeSummaryChip(
+    text: String,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = color.copy(alpha = 0.15f),
+        modifier = modifier
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold,
+            color = color,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+        )
+    }
+}
+
+@Composable
 private fun FridgeCategoryList(
     groupedItems: Map<FridgeCategory, List<FridgeItem>>,
     collapsedCategories: Set<FridgeCategory>,
     onCategoryToggle: (FridgeCategory) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    LazyColumn(modifier = modifier) {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(1),
+        modifier = modifier
+    ) {
         groupedItems.forEach { (category, categoryItems) ->
-            item(key = "header_${category.ordinal}") {
+            item(
+                key = "header_${category.ordinal}",
+                span = { GridItemSpan(maxLineSpan) }
+            ) {
                 FridgeItemCategoryHeader(
                     state = FridgeItemCategoryHeaderState(
                         category = category,

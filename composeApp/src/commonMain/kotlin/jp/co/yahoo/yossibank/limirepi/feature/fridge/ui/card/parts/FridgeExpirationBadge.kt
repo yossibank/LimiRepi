@@ -48,6 +48,14 @@ fun FridgeExpirationBadge(
         else -> ""
     }
 
+    val dateText = if (item.expirationDate.isNotEmpty()) {
+        // yyyy-MM-dd → M/d 形式に変換
+        val parts = item.expirationDate.split("-")
+        if (parts.size == 3) " · ${parts[1].trimStart('0')}/${parts[2].trimStart('0')}" else ""
+    } else {
+        ""
+    }
+
     Surface(
         shape = RoundedCornerShape(8.dp),
         color = backgroundColor,
@@ -64,7 +72,7 @@ fun FridgeExpirationBadge(
         )
     ) {
         Text(
-            text = "$prefix${item.expirationDisplayText}",
+            text = "$prefix${item.expirationDisplayText}$dateText",
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.Bold,
             fontSize = 12.sp,

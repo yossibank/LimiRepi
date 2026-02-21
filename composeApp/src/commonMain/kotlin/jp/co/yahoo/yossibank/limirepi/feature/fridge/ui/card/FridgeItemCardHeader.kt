@@ -11,16 +11,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -31,10 +27,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -52,10 +48,8 @@ fun FridgeItemCategoryHeader(
     onToggle: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val shadowColor = Color(0x0A000000)
-
     val rotationAngle by animateFloatAsState(
-        targetValue = if (state.isCollapsed) 0f else 180f,
+        targetValue = if (state.isCollapsed) 0f else 90f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessMedium
@@ -63,115 +57,83 @@ fun FridgeItemCategoryHeader(
         label = "rotationAngle"
     )
 
-    Card(
+    // アイテムカードと明確に区別するフルブリード セクションヘッダー
+    Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .shadow(
-                elevation = 2.dp,
-                shape = RoundedCornerShape(20.dp),
-                ambientColor = shadowColor,
-                spotColor = shadowColor
-            )
             .animateContentSize(
                 animationSpec = spring(
                     dampingRatio = Spring.DampingRatioMediumBouncy,
                     stiffness = Spring.StiffnessMedium
                 )
-            ),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            )
+            .background(
+                Brush.horizontalGradient(
+                    colors = listOf(
+                        state.category.color,
+                        state.category.color.copy(alpha = 0.75f)
+                    )
+                )
+            )
+            .clickable(onClick = onToggle)
     ) {
-        Surface(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable(onClick = onToggle),
-            color = Color.Transparent
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            // 白背景の円形アイコン（アイテムカードの角丸ボックスと明確に差別化）
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        Brush.horizontalGradient(
-                            colors = listOf(
-                                state.category.color.copy(alpha = 0.12f),
-                                state.category.color.copy(alpha = 0.06f)
-                            )
-                        )
-                    )
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.9f)),
+                contentAlignment = Alignment.Center
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
+                Text(
+                    text = state.category.emoji,
+                    fontSize = 24.sp
+                )
+            }
+
+            Spacer(Modifier.width(14.dp))
+
+            // カテゴリ名（白テキストで背景色に映える）
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = state.category.displayName,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Black,
+                    fontSize = 18.sp,
+                    color = Color.White,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = "${state.itemCount}件の食材",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 11.sp,
+                    color = Color.White.copy(alpha = 0.8f)
+                )
+            }
+
+            // 展開/折り畳みボタン（白背景 + 矢印）
+            Surface(
+                modifier = Modifier.size(34.dp),
+                shape = CircleShape,
+                color = Color.White.copy(alpha = 0.25f)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = if (state.isCollapsed) "展開" else "折り畳み",
+                        tint = Color.White,
                         modifier = Modifier
-                            .size(56.dp)
-                            .shadow(
-                                elevation = 4.dp,
-                                shape = RoundedCornerShape(16.dp)
-                            )
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(
-                                Brush.linearGradient(
-                                    colors = listOf(
-                                        state.category.color.copy(alpha = 0.8f),
-                                        state.category.color.copy(alpha = 0.6f)
-                                    )
-                                )
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = state.category.emoji,
-                            fontSize = 28.sp
-                        )
-                    }
-
-                    Spacer(Modifier.width(16.dp))
-
-                    Column(
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(
-                            text = state.category.displayName,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-
-                        Spacer(Modifier.height(4.dp))
-
-                        Text(
-                            text = "${state.itemCount}件",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontSize = 13.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                        )
-                    }
-
-                    Surface(
-                        modifier = Modifier.size(40.dp),
-                        shape = CircleShape,
-                        color = state.category.color.copy(alpha = 0.15f)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Default.KeyboardArrowDown,
-                                contentDescription = if (state.isCollapsed) "展開" else "折り畳み",
-                                tint = state.category.color.copy(alpha = 0.8f),
-                                modifier = Modifier
-                                    .size(24.dp)
-                                    .rotate(rotationAngle)
-                            )
-                        }
-                    }
+                            .size(22.dp)
+                            .rotate(rotationAngle)
+                    )
                 }
             }
         }
@@ -182,13 +144,31 @@ fun FridgeItemCategoryHeader(
 @Preview
 private fun FridgeItemCategoryHeaderPreview() {
     MaterialTheme {
-        FridgeItemCategoryHeader(
-            state = FridgeItemCategoryHeaderState(
-                category = FridgeCategory.MEAT,
-                itemCount = 3,
-                isCollapsed = false
-            ),
-            onToggle = {}
-        )
+        Column {
+            FridgeItemCategoryHeader(
+                state = FridgeItemCategoryHeaderState(
+                    category = FridgeCategory.MEAT,
+                    itemCount = 3,
+                    isCollapsed = false
+                ),
+                onToggle = {}
+            )
+            FridgeItemCategoryHeader(
+                state = FridgeItemCategoryHeaderState(
+                    category = FridgeCategory.LEAFY_VEGETABLE,
+                    itemCount = 5,
+                    isCollapsed = true
+                ),
+                onToggle = {}
+            )
+            FridgeItemCategoryHeader(
+                state = FridgeItemCategoryHeaderState(
+                    category = FridgeCategory.FISH,
+                    itemCount = 2,
+                    isCollapsed = false
+                ),
+                onToggle = {}
+            )
+        }
     }
 }

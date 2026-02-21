@@ -47,20 +47,20 @@ fun FridgeRemainingGauge(
         Box(
             modifier = Modifier
                 .weight(1f)
-                .height(8.dp)
-                .clip(RoundedCornerShape(4.dp))
+                .height(10.dp)
+                .clip(RoundedCornerShape(5.dp))
                 .background(gaugeColor.copy(alpha = 0.15f))
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth(fraction)
                     .fillMaxSize()
-                    .clip(RoundedCornerShape(4.dp))
+                    .clip(RoundedCornerShape(5.dp))
                     .background(
                         horizontalGradient(
                             colors = listOf(
                                 gaugeColor,
-                                gaugeColor.copy(alpha = 0.8f)
+                                gaugeColor.copy(alpha = 0.75f)
                             )
                         )
                     )

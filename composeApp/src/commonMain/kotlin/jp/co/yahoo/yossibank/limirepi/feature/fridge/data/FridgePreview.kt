@@ -13,6 +13,7 @@ object FridgePreview {
             emoji = "🥬",
             quantity = 1,
             remainingPercent = 0,
+            expirationDate = "2026-02-19",
             daysUntilExpiration = -2
         ),
         FridgeItem(
@@ -22,6 +23,7 @@ object FridgePreview {
             emoji = "🥬",
             quantity = 1,
             remainingPercent = 15,
+            expirationDate = "2026-02-22",
             daysUntilExpiration = 1
         ),
         FridgeItem(
@@ -31,6 +33,7 @@ object FridgePreview {
             emoji = "🥗",
             quantity = 1,
             remainingPercent = 90,
+            expirationDate = "2026-02-24",
             daysUntilExpiration = 3
         ),
         // 根菜
@@ -41,6 +44,7 @@ object FridgePreview {
             emoji = "🥕",
             quantity = 2,
             remainingPercent = 80,
+            expirationDate = "2026-02-26",
             daysUntilExpiration = 5
         ),
         FridgeItem(
@@ -50,6 +54,7 @@ object FridgePreview {
             emoji = "🧅",
             quantity = 4,
             remainingPercent = 100,
+            expirationDate = "2026-03-13",
             daysUntilExpiration = 20
         ),
         FridgeItem(
@@ -59,6 +64,7 @@ object FridgePreview {
             emoji = "🥔",
             quantity = 7,
             remainingPercent = 95,
+            expirationDate = "2026-03-08",
             daysUntilExpiration = 15
         ),
         // 果物
@@ -69,6 +75,7 @@ object FridgePreview {
             emoji = "🍎",
             quantity = 3,
             remainingPercent = 100,
+            expirationDate = "2026-03-03",
             daysUntilExpiration = 10
         ),
         FridgeItem(
@@ -78,6 +85,7 @@ object FridgePreview {
             emoji = "🍅",
             quantity = 5,
             remainingPercent = 70,
+            expirationDate = "2026-02-25",
             daysUntilExpiration = 4
         ),
         FridgeItem(
@@ -87,6 +95,7 @@ object FridgePreview {
             emoji = "🍌",
             quantity = 6,
             remainingPercent = 55,
+            expirationDate = "2026-02-23",
             daysUntilExpiration = 2
         ),
         // きのこ類
@@ -97,6 +106,7 @@ object FridgePreview {
             emoji = "🍄",
             quantity = 8,
             remainingPercent = 65,
+            expirationDate = "2026-02-24",
             daysUntilExpiration = 3
         ),
         FridgeItem(
@@ -106,6 +116,7 @@ object FridgePreview {
             emoji = "🍄",
             quantity = 2,
             remainingPercent = 40,
+            expirationDate = "2026-02-23",
             daysUntilExpiration = 2
         ),
         // 肉類
@@ -116,6 +127,7 @@ object FridgePreview {
             emoji = "🥩",
             quantity = 1,
             remainingPercent = 10,
+            expirationDate = "2026-02-22",
             daysUntilExpiration = 1
         ),
         FridgeItem(
@@ -125,6 +137,7 @@ object FridgePreview {
             emoji = "🍗",
             quantity = 1,
             remainingPercent = 85,
+            expirationDate = "2026-02-23",
             daysUntilExpiration = 2
         ),
         FridgeItem(
@@ -134,6 +147,7 @@ object FridgePreview {
             emoji = "🥩",
             quantity = 1,
             remainingPercent = 45,
+            expirationDate = "2026-02-22",
             daysUntilExpiration = 1
         ),
         FridgeItem(
@@ -143,6 +157,7 @@ object FridgePreview {
             emoji = "🥩",
             quantity = 1,
             remainingPercent = 20,
+            expirationDate = "2026-02-21",
             daysUntilExpiration = 0
         ),
         // 魚介類
@@ -153,6 +168,7 @@ object FridgePreview {
             emoji = "🐟",
             quantity = 2,
             remainingPercent = 100,
+            expirationDate = "2026-02-24",
             daysUntilExpiration = 3
         ),
         FridgeItem(
@@ -162,6 +178,7 @@ object FridgePreview {
             emoji = "🐟",
             quantity = 2,
             remainingPercent = 75,
+            expirationDate = "2026-02-23",
             daysUntilExpiration = 2
         ),
         FridgeItem(
@@ -171,6 +188,7 @@ object FridgePreview {
             emoji = "🦐",
             quantity = 11,
             remainingPercent = 50,
+            expirationDate = "2026-02-22",
             daysUntilExpiration = 1
         ),
         // 加工肉
@@ -181,6 +199,7 @@ object FridgePreview {
             emoji = "🥓",
             quantity = 8,
             remainingPercent = 60,
+            expirationDate = "2026-02-28",
             daysUntilExpiration = 7
         ),
         FridgeItem(
@@ -190,6 +209,7 @@ object FridgePreview {
             emoji = "🥓",
             quantity = 1,
             remainingPercent = 45,
+            expirationDate = "2026-02-26",
             daysUntilExpiration = 5
         ),
         // 乳製品
@@ -200,6 +220,7 @@ object FridgePreview {
             emoji = "🥛",
             quantity = 1,
             remainingPercent = 30,
+            expirationDate = "2026-02-25",
             daysUntilExpiration = 4
         ),
         FridgeItem(
@@ -209,6 +230,7 @@ object FridgePreview {
             emoji = "🥛",
             quantity = 4,
             remainingPercent = 80,
+            expirationDate = "2026-02-28",
             daysUntilExpiration = 7
         ),
         FridgeItem(
@@ -218,6 +240,7 @@ object FridgePreview {
             emoji = "🧀",
             quantity = 1,
             remainingPercent = 55,
+            expirationDate = "2026-03-03",
             daysUntilExpiration = 10
         ),
         FridgeItem(
@@ -227,6 +250,7 @@ object FridgePreview {
             emoji = "🧈",
             quantity = 1,
             remainingPercent = 25,
+            expirationDate = "2026-03-23",
             daysUntilExpiration = 30
         ),
         // 卵
@@ -237,6 +261,7 @@ object FridgePreview {
             emoji = "🥚",
             quantity = 6,
             remainingPercent = 60,
+            expirationDate = "2026-03-07",
             daysUntilExpiration = 14
         ),
         // 豆腐・大豆製品
@@ -247,6 +272,7 @@ object FridgePreview {
             emoji = "🧈",
             quantity = 2,
             remainingPercent = 40,
+            expirationDate = "2026-02-24",
             daysUntilExpiration = 3
         ),
         FridgeItem(
@@ -256,6 +282,7 @@ object FridgePreview {
             emoji = "🥢",
             quantity = 3,
             remainingPercent = 100,
+            expirationDate = "2026-02-26",
             daysUntilExpiration = 5
         ),
         FridgeItem(
@@ -265,6 +292,7 @@ object FridgePreview {
             emoji = "🍲",
             quantity = 4,
             remainingPercent = 70,
+            expirationDate = "2026-02-25",
             daysUntilExpiration = 4
         ),
         // 作り置き
@@ -275,6 +303,7 @@ object FridgePreview {
             emoji = "🍛",
             quantity = 1,
             remainingPercent = 40,
+            expirationDate = "2026-02-23",
             daysUntilExpiration = 2
         ),
         FridgeItem(
@@ -284,6 +313,7 @@ object FridgePreview {
             emoji = "🍲",
             quantity = 1,
             remainingPercent = 30,
+            expirationDate = "2026-02-22",
             daysUntilExpiration = 1
         ),
         FridgeItem(
@@ -293,6 +323,7 @@ object FridgePreview {
             emoji = "🥗",
             quantity = 1,
             remainingPercent = 60,
+            expirationDate = "2026-02-22",
             daysUntilExpiration = 1
         ),
         // 残り物
@@ -303,6 +334,7 @@ object FridgePreview {
             emoji = "🍗",
             quantity = 5,
             remainingPercent = 80,
+            expirationDate = "2026-02-21",
             daysUntilExpiration = 0
         ),
         FridgeItem(
@@ -312,6 +344,7 @@ object FridgePreview {
             emoji = "🍚",
             quantity = 3,
             remainingPercent = 100,
+            expirationDate = "2026-02-22",
             daysUntilExpiration = 1
         ),
         // 冷凍食品
@@ -322,6 +355,7 @@ object FridgePreview {
             emoji = "🍜",
             quantity = 3,
             remainingPercent = 100,
+            expirationDate = "2026-05-22",
             daysUntilExpiration = 90
         ),
         FridgeItem(
@@ -331,6 +365,7 @@ object FridgePreview {
             emoji = "🥟",
             quantity = 2,
             remainingPercent = 75,
+            expirationDate = "2026-04-07",
             daysUntilExpiration = 45
         ),
         FridgeItem(
@@ -340,6 +375,7 @@ object FridgePreview {
             emoji = "🍨",
             quantity = 5,
             remainingPercent = 100,
+            expirationDate = "2026-08-19",
             daysUntilExpiration = 180
         ),
         // 冷凍保存
@@ -350,6 +386,7 @@ object FridgePreview {
             emoji = "🥦",
             quantity = 1,
             remainingPercent = 50,
+            expirationDate = "2026-04-22",
             daysUntilExpiration = 60
         ),
         FridgeItem(
@@ -359,6 +396,7 @@ object FridgePreview {
             emoji = "🥕",
             quantity = 1,
             remainingPercent = 40,
+            expirationDate = "2026-03-23",
             daysUntilExpiration = 30
         ),
         // 調味料
@@ -369,6 +407,7 @@ object FridgePreview {
             emoji = "🫙",
             quantity = 1,
             remainingPercent = 20,
+            expirationDate = "2026-08-19",
             daysUntilExpiration = 180
         ),
         FridgeItem(
@@ -378,6 +417,7 @@ object FridgePreview {
             emoji = "🫙",
             quantity = 1,
             remainingPercent = 45,
+            expirationDate = "2026-05-22",
             daysUntilExpiration = 90
         ),
         FridgeItem(
@@ -387,6 +427,7 @@ object FridgePreview {
             emoji = "🧂",
             quantity = 1,
             remainingPercent = 80,
+            expirationDate = "2027-02-21",
             daysUntilExpiration = 365
         ),
         // ソース・油
@@ -397,6 +438,7 @@ object FridgePreview {
             emoji = "🫙",
             quantity = 1,
             remainingPercent = 35,
+            expirationDate = "2026-04-22",
             daysUntilExpiration = 60
         ),
         FridgeItem(
@@ -406,6 +448,7 @@ object FridgePreview {
             emoji = "🫙",
             quantity = 1,
             remainingPercent = 60,
+            expirationDate = "2026-06-21",
             daysUntilExpiration = 120
         ),
         FridgeItem(
@@ -415,6 +458,7 @@ object FridgePreview {
             emoji = "🫙",
             quantity = 1,
             remainingPercent = 50,
+            expirationDate = "2026-09-09",
             daysUntilExpiration = 200
         ),
         // 飲料
@@ -425,6 +469,7 @@ object FridgePreview {
             emoji = "🧃",
             quantity = 1,
             remainingPercent = 70,
+            expirationDate = "2026-02-26",
             daysUntilExpiration = 5
         ),
         FridgeItem(
@@ -434,6 +479,7 @@ object FridgePreview {
             emoji = "🥤",
             quantity = 3,
             remainingPercent = 100,
+            expirationDate = "2026-05-22",
             daysUntilExpiration = 90
         ),
         // その他
@@ -444,6 +490,7 @@ object FridgePreview {
             emoji = "🍞",
             quantity = 1,
             remainingPercent = 50,
+            expirationDate = "2026-02-24",
             daysUntilExpiration = 3
         ),
         FridgeItem(
@@ -453,6 +500,7 @@ object FridgePreview {
             emoji = "🫙",
             quantity = 1,
             remainingPercent = 45,
+            expirationDate = "2026-05-22",
             daysUntilExpiration = 90
         ),
         FridgeItem(
@@ -462,6 +510,7 @@ object FridgePreview {
             emoji = "🥓",
             quantity = 1,
             remainingPercent = 20,
+            expirationDate = "2026-02-23",
             daysUntilExpiration = 2
         ),
         FridgeItem(
@@ -471,6 +520,7 @@ object FridgePreview {
             emoji = "🥬",
             quantity = 1,
             remainingPercent = 90,
+            expirationDate = "2026-06-21",
             daysUntilExpiration = 120
         )
     )
