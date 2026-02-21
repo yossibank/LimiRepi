@@ -62,7 +62,6 @@ import jp.co.yahoo.yossibank.limirepi.feature.fridge.model.FridgeCategory
 import jp.co.yahoo.yossibank.limirepi.feature.fridge.model.FridgeItem
 import jp.co.yahoo.yossibank.limirepi.feature.fridge.model.FridgeSortType
 
-// region Colors - Modern Palette
 private val ExpiredRed = Color(0xFFEF5350)
 private val ExpiredBackground = Color(0x15EF5350)
 private val UrgentOrange = Color(0xFFFF7043)
@@ -72,7 +71,6 @@ private val GaugeHigh = Color(0xFF4CAF50)
 private val GaugeMedium = Color(0xFFFFB74D)
 private val GaugeLow = Color(0xFFEF5350)
 private val CategoryHeaderShadow = Color(0x0A000000)
-// endregion
 
 /**
  * 冷蔵庫画面（カテゴリ別リスト形式）
@@ -209,8 +207,6 @@ fun FridgeScreen(
         }
     }
 }
-
-// region ヘッダー
 
 /**
  * 検索バー + ソート/フィルタボタン
@@ -349,10 +345,6 @@ private fun FilterChip(
     }
 }
 
-// endregion
-
-// region 空状態
-
 /**
  * 食材がない場合の空状態UI
  */
@@ -388,10 +380,6 @@ private fun FridgeEmptyState(
         )
     }
 }
-
-// endregion
-
-// region カテゴリヘッダー
 
 /**
  * カテゴリ別のカードヘッダー（アコーディオン・モダンデザイン・アニメーション付き）
@@ -533,10 +521,6 @@ private fun CategoryHeader(
         }
     }
 }
-
-// endregion
-
-// region 食材カード
 
 /**
  * 食材1件分のカード（モダンデザイン）
@@ -761,10 +745,6 @@ private fun QuantityDisplay(
         )
     }
 }
-
-// endregion
-
-// region Preview
 
 /**
  * プレビュー用サンプルデータ
@@ -1239,5 +1219,3 @@ private fun sampleFridgeItems(): List<FridgeItem> = listOf(
         daysUntilExpiration = 120
     )
 )
-
-// endregion

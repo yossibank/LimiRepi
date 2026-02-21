@@ -7,7 +7,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.UIKitViewController
 import jp.co.yahoo.yossibank.limirepi.feature.receipt.model.ReceiptData
 import jp.co.yahoo.yossibank.limirepi.feature.receipt.ocr.ReceiptOcrService
-import jp.co.yahoo.yossibank.limirepi.util.logger.AppLogger
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.readValue
@@ -48,7 +47,6 @@ actual fun CameraScreen(
     val photoOutput = remember { AVCapturePhotoOutput() }
     val ocrService = remember { ReceiptOcrService() }
 
-    // DisposableEffectでリソースのクリーンアップ
     DisposableEffect(Unit) {
         onDispose {
             ocrService.close()
@@ -61,22 +59,20 @@ actual fun CameraScreen(
                 session = session,
                 photoOutput = photoOutput,
                 onImageCaptured = { imageData ->
-                    // 画像キャプチャ完了を通知（この時点でカメラ画面を閉じる）
                     dispatch_async(dispatch_get_main_queue()) {
                         onCaptureFinished()
                         onAnalyzing(true)
                     }
 
-                    // 解析処理（バックグラウンドで実行）
                     MainScope().launch {
                         try {
                             val receiptData = ocrService.scanReceipt(imageData)
+
                             dispatch_async(dispatch_get_main_queue()) {
                                 onAnalyzing(false)
                                 onParsed(receiptData)
                             }
                         } catch (e: Exception) {
-                            AppLogger.e("CameraScreen", "Error scanning receipt: ${e.message}")
                             dispatch_async(dispatch_get_main_queue()) {
                                 onAnalyzing(false)
                                 onParsed(null)
@@ -126,7 +122,6 @@ class UIViewCapturer(
     private val photoOutput: AVCapturePhotoOutput,
     private val onImageCaptured: (ByteArray) -> Unit
 ) : UIViewController(null, null), AVCapturePhotoCaptureDelegateProtocol {
-
     private val previewLayer = AVCaptureVideoPreviewLayer(session = session).apply {
         videoGravity = AVLayerVideoGravityResizeAspectFill
     }
@@ -157,22 +152,21 @@ class UIViewCapturer(
         error: NSError?
     ) {
         if (error != null) {
-            AppLogger.e("CameraScreen", "Capture error: ${error.localizedDescription}")
             return
         }
 
-        val imageData = didFinishProcessingPhoto.fileDataRepresentation() ?: run {
-            AppLogger.e("CameraScreen", "Failed to get image data")
-            return
-        }
+        val imageData = didFinishProcessingPhoto.fileDataRepresentation() ?: return
 
-        // NSDataをByteArrayに変換
         val byteArray = ByteArray(imageData.length.toInt())
+
         byteArray.usePinned { pinned ->
-            memcpy(pinned.addressOf(0), imageData.bytes, imageData.length)
+            memcpy(
+                pinned.addressOf(0),
+                imageData.bytes,
+                imageData.length
+            )
         }
 
-        // 画像データをコールバックに渡す
         onImageCaptured(byteArray)
     }
 }

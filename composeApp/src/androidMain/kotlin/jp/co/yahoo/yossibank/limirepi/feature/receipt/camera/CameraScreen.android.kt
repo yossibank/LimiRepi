@@ -25,7 +25,6 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import jp.co.yahoo.yossibank.limirepi.feature.receipt.model.ReceiptData
 import jp.co.yahoo.yossibank.limirepi.feature.receipt.ocr.ReceiptOcrService
-import jp.co.yahoo.yossibank.limirepi.util.logger.AppLogger
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
@@ -43,7 +42,6 @@ actual fun CameraScreen(
     val imageCapture = remember { ImageCapture.Builder().build() }
     val ocrService = remember { ReceiptOcrService() }
 
-    // DisposableEffectでリソースのクリーンアップ
     DisposableEffect(Unit) {
         onDispose {
             ocrService.close()
@@ -59,23 +57,16 @@ actual fun CameraScreen(
                 object : ImageCapture.OnImageCapturedCallback() {
                     @SuppressLint("UnsafeOptInUsageError")
                     override fun onCaptureSuccess(imageProxy: ImageProxy) {
-                        // 画像キャプチャ完了を通知（この時点でカメラ画面を閉じる）
                         onCaptureFinished()
                         onAnalyzing(true)
 
-                        // 解析処理（バックグラウンドで実行）
                         MainScope().launch {
                             try {
-                                // ImageProxyをJPEG ByteArrayに変換
                                 val jpegBytes = imageProxyToJpegByteArray(imageProxy)
-
-                                // Gemini APIで解析
                                 val receiptData = ocrService.scanReceipt(jpegBytes)
-
                                 onAnalyzing(false)
                                 onParsed(receiptData)
                             } catch (e: Exception) {
-                                AppLogger.e("CameraScreen", "Error analyzing receipt: ${e.message}")
                                 onAnalyzing(false)
                                 onParsed(null)
                             } finally {
@@ -85,7 +76,6 @@ actual fun CameraScreen(
                     }
 
                     override fun onError(exc: ImageCaptureException) {
-                        AppLogger.e("CameraScreen", "Image capture error: ${exc.message}")
                         onCaptureFinished()
                         onParsed(null)
                     }

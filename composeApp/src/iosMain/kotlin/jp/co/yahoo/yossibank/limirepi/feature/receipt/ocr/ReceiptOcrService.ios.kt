@@ -3,7 +3,6 @@ package jp.co.yahoo.yossibank.limirepi.feature.receipt.ocr
 import jp.co.yahoo.yossibank.limirepi.config.ApiConfig
 import jp.co.yahoo.yossibank.limirepi.feature.receipt.api.GeminiApiClient
 import jp.co.yahoo.yossibank.limirepi.feature.receipt.model.ReceiptData
-import jp.co.yahoo.yossibank.limirepi.util.logger.AppLogger
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
@@ -19,21 +18,7 @@ actual class ReceiptOcrService {
 
     actual suspend fun scanReceipt(imageData: ByteArray): ReceiptData? {
         val base64Image = imageData.toNSData().base64EncodedStringWithOptions(0u)
-
-        AppLogger.d(TAG, "Calling Gemini API for receipt analysis...")
-
-        return geminiApiClient.analyzeReceipt(base64Image)
-            .onSuccess { receiptData ->
-                AppLogger.d(TAG, "Receipt analyzed: ${receiptData.items.size} items")
-                AppLogger.d(
-                    TAG,
-                    "Store: ${receiptData.storeName}, Total: ${receiptData.totalAmount}"
-                )
-            }
-            .onFailure { error ->
-                AppLogger.e(TAG, "Failed to analyze receipt: ${error.message}")
-            }
-            .getOrNull()
+        return geminiApiClient.analyzeReceipt(base64Image).getOrNull()
     }
 
     actual fun close() {
@@ -45,9 +30,5 @@ actual class ReceiptOcrService {
         return usePinned { pinned ->
             NSData.create(bytes = pinned.addressOf(0), length = size.toULong())
         }
-    }
-
-    companion object {
-        private const val TAG = "ReceiptOcrService"
     }
 }
